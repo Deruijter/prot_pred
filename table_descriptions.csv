@@ -1,0 +1,20 @@
+Category	Description	# Features	Regions
+Sequence	Lengths of UTRs and CDS	3	 -
+Nucleotide	Ratio of occurrence of each nucleotide	4	full, 5utr, 3utr, cds1, cds2
+Codon	Ratio of occurrence of each codon	64	cds1, cds2, cds3
+Amino acids	Ratio of occurrence of each amino acids	20	cds1, cds2, cds3
+Amino acid properties	Ratio of occurrence of each amino acid properties	5	cds1, cds2, cds3
+Polyproline	Amount of polyproline regions	1	First 33 codons
+Structure	Various statistics of the secondary structure	22	all
+uORF	Amount of uORFs split for 5’ and 3’ end	2	5utr, 3utr
+RNA abundance		1	 -
+RNA syntesis time		1	 -
+RNA half life		1	 -
+Protein half life		1	 -
+Ribo-seq	RPF per RNA and RPF regression	2	cds1
+Comp	Sequence, nucleotide, amino acid, amino acid property and structure data	54	 -
+Comp + rna.st		55	 -
+Comp + rna.hl		56	 -
+Comp + pro.hl		57	 -
+Comp + rpf		59	 -
+Comp + exp	Comp data set plus all experiments-required data	64	 -

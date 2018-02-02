@@ -1,0 +1,35 @@
+# IMPORTANT: 
+# I forgot to set the seed when I made the original train/test set so this code does not reproduce the original train/test and permutation sets 
+# (the original sets have been uploaded with the code however)
+# Below is the code that was used to create the sets
+
+require(rstudioapi)
+setwd(paste(dirname(getActiveDocumentContext()$path), '/..', sep=''))
+
+#mrnas_p = readRDS('data/mrnas_p.RObject')
+
+#require(caret)
+
+# # I WANT TO USE THE SAME ID'S FOR EACH MACHINE LEARNER SO ONLY RUN THIS ONCE AND REUSE THE OUTPUT
+# # MAKE 10 TEST SETS (only used for final model evaluation 70% 30%). Use stratified split
+# training_data = data.frame(sys_id = mrnas_p$sys_id) # TRUE = for training, FALSE = for testing
+# data_set_a = data.frame(sys_id = mrnas_p$sys_id, avg_count_pro_bin_4 = cut(mrnas_p$avg_count_pro, breaks=4))
+# for(i in 1:10){
+# 	indexes = createDataPartition(mrnas_p$pro_per_rna, p=.7, list=F) # from caret package
+# 	training_data[,sprintf('set_%s',i)] = training_data$sys_id %in% mrnas_p[indexes,'sys_id']
+# }
+# write.table(training_data, './data_sets/training_ids2.csv', sep='\t', row.names=F)
+
+
+# # First column are the original values
+# CreatePermutedProPerRna = function(){
+#   permuted_pro_per_rna = data.frame('0'=numeric(),'1'=numeric(),'2'=numeric(),'3'=numeric(),'4'=numeric(),'5'=numeric(),'6'=numeric(),'7'=numeric(),'8'=numeric(),'9'=numeric(),'10'=numeric())
+#   pro_per_rna = mrnas_p$pro_per_rna
+#   permuted_pro_per_rna[1:length(pro_per_rna),'X0'] = pro_per_rna
+#   for(i in 1:10){
+#     permuted_pro_per_rna[1:length(pro_per_rna),sprintf('X%s',i)] = sample(pro_per_rna, length(pro_per_rna))
+#   }
+#   return(permuted_pro_per_rna)
+# }
+# permuted_pro_per_rna = CreatePermutedProPerRna()
+# #saveRDS(permuted_pro_per_rna, './data/permuted_pro_per_rna.RObject')
