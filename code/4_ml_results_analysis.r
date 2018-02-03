@@ -548,7 +548,7 @@ GetProteinPredictions = function() {
         pred_fs = rbind(pred_fs, pred_temp)
         
       } else {
-        pred_temp = read.table(sprintf('./ml_output/predictions/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
+        pred_temp = read.table(sprintf('./ml_output/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
         pred_temp = cbind(as.data.frame(test_ids[1:951]), pred_temp, stringsAsFactors=F) # ORDER STAYED THE SAME
         
         # DE-SCALE THE DATA
@@ -556,6 +556,9 @@ GetProteinPredictions = function() {
         m = lm(mrnas_p[mrnas_p$sys_id %in% test_ids[1:951], 'pro_per_rna'] ~ descaled_real)
         descaled_real = descaled_real * m$coefficients[2] + m$coefficients[1] # should match the real rp_ratio in the mrnas_p data set
         pred_temp[,2] = descaled_real
+        
+        mrnas_test = mrnas_p[mrnas_p$sys_id %in% test_ids,]
+        pred_temp[,2] = mrnas_test$pro_per_rna[1:951]
         
         descaled_pred = (pred_temp[,3] * sd(mrnas_p[mrnas_p$sys_id %in% train_ids, 'pro_per_rna'])) + mean(mrnas_p[mrnas_p$sys_id %in% train_ids, 'pro_per_rna'])
         descaled_pred = descaled_pred * m$coefficients[2] + m$coefficients[1] # De-scale using only the training data!
@@ -577,10 +580,10 @@ GetProteinPredictions = function() {
     pred_fs = as.data.frame(pred_fs %>%
                               group_by(sys_id, real, avg_count_pro, avg_count_rna, clr, clr2) %>%
                               summarize(#real = mean(real)
-                                        pred = mean(pred)
-                                        #, avg_count_pro = mean(avg_count_pro)
-                                        #, avg_count_rna = mean(avg_count_rna)
-                                        , pred_pro = mean(pred_pro)
+                                pred = mean(pred)
+                                #, avg_count_pro = mean(avg_count_pro)
+                                #, avg_count_rna = mean(avg_count_rna)
+                                , pred_pro = mean(pred_pro)
                               ))
     
     pred_fs[,'log_real'] = log(pred_fs$real)
