@@ -548,7 +548,7 @@ GetProteinPredictions = function() {
         pred_fs = rbind(pred_fs, pred_temp)
         
       } else {
-        pred_temp = read.table(sprintf('./ml_output/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
+        pred_temp = read.table(sprintf('./ml_output/predictions/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
         pred_temp = cbind(as.data.frame(test_ids[1:951]), pred_temp, stringsAsFactors=F) # ORDER STAYED THE SAME
         
         # DE-SCALE THE DATA
