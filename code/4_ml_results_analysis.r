@@ -317,7 +317,7 @@ ml_scores_filtered = readRDS(file = 'data/ml_scores_filtered2.RObject')
 
 # Fig XXX and Fig XXX
 CreateHeatmap = function(){
-  scr = readRDS('data/ml_scores_filtered2.RObject')
+  scr = readRDS('ml_scores_filtered2.RObject')
   scr = scr[!grepl('\\_p[0-9]{1,2}', scr$data_set),] # Remove all results from the permutation test
   scr[scr$test_score < 0, 'test_score'] = 0 # Set the cut off for the plot at 0 (so as good as, or worse than random)
   
@@ -350,7 +350,28 @@ CreateHeatmap = function(){
   )
   mat = mat[rev(order),]
   
+  
   data_set_names = rev(as.list(unique(learner_data_set_means$data_set))[order])
+  
+  # Make the data set names a bit nicer
+  # data_set_names = list('Sequence  -  ',
+  #                       'Nucleotide full', 'Nucleotide 5utr', 'Nucleotide cds1', 'Nucleotide 3utr', 'Nucleotide cds2',
+  #                       'Manual1 codon', 'Manual1 amino', 'Manual1 c & a',
+  #                       'Codon cds2', 'Codon cds3', 'Codon cds1',
+  #                       'Struct W14 full', 'Struct W14 5utr', 'Struct W14 cds1', 'Struct W14 3utr', 'Struct W14 cds2', 'Struct W14 init', 'Struct W14 cds3',
+  #                       'sORF1  -  ', 'sORF2  -  ',
+  #                       'Halflife  -  ',
+  #                       'Proline R.  -  ',
+  #                       'Amino Acid cds2','Amino Acid cds3',
+  #                       'A.A. prop. cds2','A.A. prop. cds3','Amino Acid cds1','A.A. prop. cds1',
+  #                       'RNA abund.  -  ','Ribo-seq cds1',
+  #                       'Manual2 codon','Manual2 amino','Manual2 c & a',
+  #                       'Manual3 codon','Manual3 amino','Manual3 c & a',
+  #                       'ALL DATA',
+  #                       'RFE ExtraTrees', 'RFE LinearSVR ', 'RFE RidgeRegr.',
+  #                       'SFM EN L1=0.25','SFM EN L1=0.70','SFM EN L1=0.95','SFM ExtraTrees','SFM LinearSVR ',
+  #                       'Var. thresh. 5%'
+  # )
   
   # STYLE
   f <- list(
@@ -1177,52 +1198,50 @@ CreateRpkmComparison = function(){
   
 }
 
-GetPValues = function(){
+CreateResultsTable = function(){
   
-  # RP RATIO COMPARE BETWEEN LOG-SCALE DIFFERENCE FOR EACH TRANSCRIPT
-  predictions = GetRpRatioPredictions()
-  predictions$diff = abs(predictions$log_real - predictions$log_pred)
-  print(('COMPARE RP RATIO BETWEEN EACH TRANSCRIPT:'))
-  for(fs in unique(predictions$col)){
-    p = t.test(predictions[predictions$col=='COMP        | r² 0.20','diff'],predictions[predictions$col==fs,'diff'])$p.value
-    #fs = PrettifyFeatureSetNames(fs)
-    print(paste(paste('COMP vs ',fs),"--- PVALUE: ", p))
-  }
-  print('')
+  predictions = GetProteinPredictions()
+  
+  # [1] COMP exp. | r² 0.62   COMP rpf | r² 0.62    COMP rna.hl | r² 0.58 COMP pro.hl | r² 0.59
+  # [5] COMP | r² 0.57        COMP rna.sr | r² 0.57 Linear | r² 0.48     
+  # 7 Levels: Linear | r² 0.48 COMP | r² 0.57 COMP rna.sr | r² 0.57 ... COMP exp. | r² 0.62
+  
+  ### DISTRIBUTIONS COMPARE
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP | r² 0.57','log_pred_pro'])$p.value
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP rna.sr | r² 0.57','log_pred_pro'])$p.value
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP rna.hl | r² 0.58','log_pred_pro'])$p.value
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP pro.hl | r² 0.59','log_pred_pro'])$p.value
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP rpf | r² 0.62','log_pred_pro'])$p.value
+  t.test(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP exp. | r² 0.62','log_pred_pro'])$p.value
+  plot(predictions[predictions$col=='COMP | r² 0.57','log_avg_count_pro'], predictions[predictions$col=='COMP exp. | r² 0.62','log_pred_pro'])
   
   
-  ### RP RATIO COMPARE BETWEEN R2 FROM EACH TEST SET
-  scr = readRDS('data/ml_scores_filtered2.RObject')
+  
+  ### RP RATIO COMPARE
+  scr = readRDS('ml_scores_filtered.RObject')
   scr = scr[!grepl('\\_p[0-9]{1,2}', scr$data_set),] # Remove all results from the permutation test
   scr = scr[grepl('x0_', scr$data_set),]
   scr = scr[scr$base_learner=='rfr',] 
-  print('COMPARE RP RATIO R2 RESULTS')
+  
+  t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set=='x0_110110100-0100','test_score'])$p.value
+  t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set=='x0_110110100-0010','test_score'])$p.value
+  t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set=='x0_110110100-0001','test_score'])$p.value
+  t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set=='x0_110110100-1000','test_score'])$p.value
+  t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set=='x0_110110100-1111','test_score'])$p.value
   for(fs in unique(scr$data_set)){
     p = t.test(scr[scr$data_set=='x0_110110100','test_score'],scr[scr$data_set==fs,'test_score'])$p.value
     fs = PrettifyFeatureSetNames(fs)
-    print(paste(paste('COMP vs ',fs),"--- PVALUE: ", p))
+    print(paste(fs,"--- PVALUE: ", p))
   } 
-  print('')
   
   
   
-  # PROTEIN PREDICTIONS COMPARE BETWEEN LOG-SCALE DIFFERENCE FOR EACH PROTEIN
-  predictions = GetProteinPredictions()
-  predictions$diff = abs(predictions$log_avg_count_pro - predictions$log_pred_pro)
-  print('COMPARE PROTEIN PREDICTION BETWEEN EACH PREDICTED PROTEIN:')
-  for(fs in unique(predictions$col)){
-    p = t.test(predictions[predictions$col=='COMP        | r² 0.58','diff'],predictions[predictions$col==fs,'diff'])$p.value
-    #fs = PrettifyFeatureSetNames(fs)
-    print(paste(paste('COMP vs ',fs),"--- PVALUE: ", p))
-  } 
-  print('')
   
-  
-  #### PROTEIN PREDICTIONS COMPARE BETWEEN R2 FROM EACH TEST SET
+  #### PROTEIN PREDICTIONS COMPARE (R2)
   learner= 'rfr'
   
   predictions = data.frame()
-  training_ids = read.table('./data/training_ids.csv', sep='\t', header=T, stringsAsFactors=F)
+  training_ids = read.table('./data/training_ids2.csv', sep='\t', header=T, stringsAsFactors=F)
   mrnas_p = readRDS('./data/mrnas_p.RObject')
   feature_sets = c('linear_model', 'x0_110110100', 'x0_110110100-0100','x0_110110100-0010','x0_110110100-0001','x0_110110100-1000','x0_110110100-1111')
   r2s = data.frame()
@@ -1236,6 +1255,7 @@ GetPValues = function(){
       test_ids = training_ids[training_ids[,sprintf('set_%s',i)]==F,'sys_id']
       
       if(fs=='linear_model'){
+        print('a')
         mrnas_train = mrnas_p[mrnas_p$sys_id %in% train_ids,]
         mrnas_test = mrnas_p[mrnas_p$sys_id %in% test_ids,]
         
@@ -1254,7 +1274,7 @@ GetPValues = function(){
         pred_temp$clr = '#FF5577'
         
       } else {
-        pred_temp = read.table(sprintf('./ml_output/predictions/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
+        pred_temp = read.table(sprintf('./ml_output/ml_predictions_%s_%s_%s.csv', learner,fs,i),header=F,sep=',', stringsAsFactors=F)
         pred_temp = cbind(as.data.frame(test_ids[1:951]), pred_temp, stringsAsFactors=F) # ORDER STAYED THE SAME
         colnames(pred_temp) = c('sys_id','real','pred')
         
@@ -1281,11 +1301,18 @@ GetPValues = function(){
       r2s = rbind(r2s, data.frame(data_set=fs, test_set=i, r2=CalcR2(pred_temp$log_avg_count_pro, pred_temp$log_pred_pro)))
     }
   }
-  print('COMPARE PROTEIN PREDICTION R2 RESULTS')
+  
+  t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set=='x0_110110100-0100','r2'])$p.value
+  t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set=='x0_110110100-0010','r2'])$p.value
+  t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set=='x0_110110100-0001','r2'])$p.value
+  t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set=='x0_110110100-1000','r2'])$p.value
+  t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set=='x0_110110100-1111','r2'])$p.value
+  
+  
   for(fs in unique(r2s$data_set)){
     p = t.test(r2s[r2s$data_set=='x0_110110100','r2'],r2s[r2s$data_set==fs,'r2'])$p.value
     fs = PrettifyFeatureSetNames(fs)
-    print(paste(paste('COMP vs ',fs),"--- PVALUE: ", p))
+    print(paste(fs,"--- PVALUE: ", p))
   } 
 }
 
@@ -1297,7 +1324,8 @@ CreateFeatureImportance()
 CreateFeatureImportanceAFS()
 CreatePermutationTest()
 CreateRpkmComparison()
-GetPValues()
+
+
 
 
 
